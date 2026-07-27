@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Deposit Requests{% endblock %}
+{% block content %}
+<div class="row mb-3 align-items-center">
+  <div class="col">
+    <h4 class="glow-text mb-0"><i class="fas fa-inbox me-2"></i>Deposit Requests</h4>
+    <small class="text-muted">Review and approve or reject user deposit requests</small>
+  </div>
+  <div class="col-auto">
+    <a href="/admin-dashboard/" class="btn btn-sm btn-atm btn-atm-danger">
+      <i class="fas fa-arrow-left me-1"></i>Back
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-box">
+      <div class="stat-val" style="color:#ffa502">{{ pending_count }}</div>
+      <div class="stat-label"><i class="fas fa-hourglass-half me-1"></i>Pending Requests</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--atm-green)">
+        {{ requests_list | selectattr('status','eq','APPROVED') | list | length }}
+      </div>
+      <div class="stat-label"><i class="fas fa-check-circle me-1"></i>Approved</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--atm-red)">
+        {{ requests_list | selectattr('status','eq','REJECTED') | list | length }}
+      </div>
+      <div class="stat-label"><i class="fas fa-times-circle me-1"></i>Rejected</div>
+    </div>
+  </div>
+</div>
+
+<div class="atm-card">
+  <h6 class="section-title"><i class="fas fa-list me-2"></i>All Requests</h6>
+
+  {% if requests_list %}
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>User</th>
+          <th>Account</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Requested On</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in requests_list %}
+        <tr>
+          <td class="text-muted">{{ loop.index }}</td>
+          <td><strong>{{ r['name'] }}</strong></td>
+          <td><code style="color:var(--atm-accent);font-size:.8rem">{{ r['account_number'] }}</code></td>
+          <td style="color:var(--atm-accent);font-weight:600;">₹{{ "{:,.2f}".format(r['amount']) }}</td>
+          <td>
+            {% if r['status'] == 'PENDING' %}
+              <span style="background:#3d2c0030;color:#ffa502;border:1px solid #7a5200;
+                           padding:.25rem .65rem;border-radius:20px;font-size:.82rem;">
+                <i class="fas fa-hourglass-half me-1"></i>Pending
+              </span>
+            {% elif r['status'] == 'APPROVED' %}
+              <span class="badge-active"><i class="fas fa-check-circle me-1"></i>Approved</span>
+            {% else %}
+              <span class="badge-locked"><i class="fas fa-times-circle me-1"></i>Rejected</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small">{{ r['created_at'][:16] }}</td>
+          <td>
+            {% if r['status'] == 'PENDING' %}
+            <div class="d-flex gap-1">
+              <form action="/admin-deposit-approve/{{ r['id'] }}/" method="POST">
+                <button type="submit" class="btn btn-sm btn-atm btn-atm-success px-3"
+                        onclick="return confirm('Approve ₹{{ '{:,.0f}'.format(r['amount']) }} for {{ r['name'] }}?')">
+                  <i class="fas fa-check me-1"></i>Approve
+                </button>
+              </form>
+              <form action="/admin-deposit-reject/{{ r['id'] }}/" method="POST">
+                <button type="submit" class="btn btn-sm btn-atm btn-atm-danger px-3"
+                        onclick="return confirm('Reject this request?')">
+                  <i class="fas fa-times me-1"></i>Reject
+                </button>
+              </form>
+            </div>
+            {% else %}
+              <span class="text-muted small">{{ r['reviewed_at'][:16] if r['reviewed_at'] else '—' }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted text-center py-4">
+      <i class="fas fa-inbox fa-2x mb-2 d-block"></i>No deposit requests yet.
+    </p>
+  {% endif %}
+</div>
+{% endblock %}

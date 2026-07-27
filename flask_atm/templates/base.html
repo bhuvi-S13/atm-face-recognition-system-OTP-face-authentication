@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{% block title %}SecureATM{% endblock %}</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  :root{
+    --atm-dark:#0a0f1e;--atm-card:#111827;--atm-accent:#00e5ff;
+    --atm-green:#00ff88;--atm-red:#ff4757;--atm-border:#1e2d45;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--atm-dark);color:#e0e6f0;font-family:'Segoe UI',sans-serif;min-height:100vh;}
+  .navbar{background:linear-gradient(90deg,#060c18,#0d1b2e);border-bottom:1px solid var(--atm-border);padding:.8rem 2rem;}
+  .navbar-brand{color:var(--atm-accent)!important;font-weight:700;font-size:1.3rem;letter-spacing:1px;}
+  .navbar-brand i{margin-right:.5rem;}
+  .nav-link{color:#8fa3c0!important;transition:.2s;}
+  .nav-link:hover{color:var(--atm-accent)!important;}
+  .atm-card{background:var(--atm-card);border:1px solid var(--atm-border);border-radius:16px;padding:2rem;margin-bottom:1.5rem;box-shadow:0 4px 30px rgba(0,229,255,.06);}
+  .atm-card-glow{box-shadow:0 0 30px rgba(0,229,255,.15),0 4px 30px rgba(0,0,0,.4);}
+  .btn-atm{background:linear-gradient(135deg,#00b4d8,#0077b6);color:#fff;border:none;border-radius:8px;padding:.6rem 1.5rem;font-weight:600;transition:.25s;}
+  .btn-atm:hover{background:linear-gradient(135deg,#0077b6,#00b4d8);transform:translateY(-1px);color:#fff;}
+  .btn-atm-success{background:linear-gradient(135deg,#00b09b,#096642);}
+  .btn-atm-success:hover{background:linear-gradient(135deg,#096642,#00b09b);}
+  .btn-atm-danger{background:linear-gradient(135deg,#ff4757,#c0392b);}
+  .btn-atm-danger:hover{background:linear-gradient(135deg,#c0392b,#ff4757);}
+  .form-control,.form-select{background:#0d1b2e;border:1px solid var(--atm-border);color:#e0e6f0;border-radius:8px;}
+  .form-control:focus,.form-select:focus{background:#0d1b2e;border-color:var(--atm-accent);color:#e0e6f0;box-shadow:0 0 0 3px rgba(0,229,255,.15);}
+  .form-label{color:#8fa3c0;font-size:.9rem;font-weight:500;}
+  .badge-active{background:#05490530;color:var(--atm-green);border:1px solid #096642;padding:.3rem .7rem;border-radius:20px;}
+  .badge-locked{background:#3d050530;color:var(--atm-red);border:1px solid #6b1515;padding:.3rem .7rem;border-radius:20px;}
+  .stat-box{background:#0d1b2e;border:1px solid var(--atm-border);border-radius:12px;padding:1.2rem 1.5rem;text-align:center;}
+  .stat-box .stat-val{font-size:2rem;font-weight:700;color:var(--atm-accent);}
+  .stat-box .stat-label{color:#8fa3c0;font-size:.85rem;margin-top:.2rem;}
+  .alert{border-radius:10px;}
+  .table{color:#c0d0e8;}
+  .table th{color:#8fa3c0;font-weight:600;border-color:#1e2d45;font-size:.85rem;}
+  .table td{border-color:#1a2535;}
+  a{color:var(--atm-accent);}
+  a:hover{color:#7ef7ff;}
+  .section-title{color:var(--atm-accent);font-weight:700;font-size:1.1rem;margin-bottom:1rem;letter-spacing:.5px;}
+  .glow-text{color:var(--atm-accent);text-shadow:0 0 20px rgba(0,229,255,.4);}
+  hr{border-color:#1e2d45;}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/"><i class="fas fa-university"></i>SecureATM</a>
+    <div class="ms-auto d-flex align-items-center gap-3">
+      {% if session.get('user_name') %}
+        <span class="text-muted small"><i class="fas fa-user-circle me-1"></i>{{ session.user_name }}</span>
+        <a href="/logout/" class="btn btn-sm btn-atm btn-atm-danger">Logout</a>
+      {% elif session.get('admin_logged_in') %}
+        <span class="text-muted small"><i class="fas fa-shield-alt me-1"></i>Admin</span>
+        <a href="/admin-dashboard/" class="btn btn-sm btn-atm">Dashboard</a>
+        <a href="/admin-logout/" class="btn btn-sm btn-atm btn-atm-danger">Logout</a>
+      {% else %}
+        <a href="/admin-login/" class="btn btn-sm btn-atm">Admin</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ 'success' if cat=='success' else 'danger' if cat=='danger' else 'info' if cat=='info' else 'warning' }} alert-dismissible fade show" role="alert">
+        <i class="fas fa-{{ 'check-circle' if cat=='success' else 'exclamation-triangle' if cat=='danger' else 'info-circle' }} me-2"></i>{{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

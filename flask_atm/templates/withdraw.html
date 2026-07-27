@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Withdraw{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-5">
+    <div class="atm-card atm-card-glow">
+      <h4 class="section-title"><i class="fas fa-minus-circle me-2"></i>Withdraw Money</h4>
+      <p class="text-muted small mb-4">Enter your 4-digit PIN to authorise the withdrawal.</p>
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Amount (₹)</label>
+          <input type="number" name="amount" class="form-control" placeholder="Enter amount"
+                 min="1" step="0.01" required autofocus/>
+        </div>
+        <div class="mb-4">
+          <label class="form-label"><i class="fas fa-lock me-1"></i>4-Digit PIN</label>
+          <input type="password" name="pin" class="form-control"
+                 maxlength="4" placeholder="••••"
+                 inputmode="numeric" pattern="[0-9]{4}"
+                 style="letter-spacing:6px;font-size:1.3rem;text-align:center;" required/>
+          <div class="form-text text-muted">Your registered ATM PIN is required to withdraw.</div>
+        </div>
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-atm">
+            <i class="fas fa-check-circle me-2"></i>Confirm Withdrawal
+          </button>
+          <a href="/account/" class="btn btn-atm btn-atm-danger">
+            <i class="fas fa-times me-2"></i>Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

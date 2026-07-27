@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}SecureATM – Home{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <div class="col-lg-7 text-center">
+    <div class="atm-card atm-card-glow p-5">
+      <div style="font-size:4rem;color:var(--atm-accent);margin-bottom:1rem;">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h1 class="fw-bold glow-text mb-2">SecureATM</h1>
+      <p class="text-muted mb-1">Additional Security in ATM Transactions</p>
+      <p class="text-muted small mb-4">using <strong style="color:var(--atm-accent)">Face Recognition</strong> + <strong style="color:var(--atm-green)">OTP Verification</strong></p>
+
+      <div class="row g-3 mb-4">
+        <div class="col-4">
+          <div class="stat-box">
+            <div><i class="fas fa-camera fa-2x" style="color:var(--atm-accent)"></i></div>
+            <div class="mt-2" style="color:#cdd9e8;font-size:.85rem;">Face Recognition</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="stat-box">
+            <div><i class="fas fa-mobile-alt fa-2x" style="color:var(--atm-green)"></i></div>
+            <div class="mt-2" style="color:#cdd9e8;font-size:.85rem;">OTP Verification</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="stat-box">
+            <div><i class="fas fa-lock fa-2x" style="color:#ffa502"></i></div>
+            <div class="mt-2" style="color:#cdd9e8;font-size:.85rem;">Dual-Layer Auth</div>
+          </div>
+        </div>
+      </div>
+
+      <a href="/face-verify/" class="btn btn-atm btn-lg px-5">
+        <i class="fas fa-sign-in-alt me-2"></i>Start Authentication
+      </a>
+      <p class="text-muted small mt-3">
+        <i class="fas fa-info-circle me-1"></i>Look into the camera and follow the on-screen instructions
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
