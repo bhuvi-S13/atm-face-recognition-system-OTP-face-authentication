@@ -1,0 +1,7 @@
+1)open anaconda prompt
+
+2)activate myenv
+
+3)cd C:\Users\91944\OneDrive\bhuvi\Desktop\flask_atm_project\flask_atm
+
+4)python app.py

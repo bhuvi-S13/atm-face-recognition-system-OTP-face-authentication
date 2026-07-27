@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}OTP Verification{% endblock %}
+{% block extra_head %}
+<style>
+.otp-box{letter-spacing:8px;font-size:1.6rem;text-align:center;font-weight:700;
+  background:#0d1b2e;border:2px solid var(--atm-accent);border-radius:10px;color:var(--atm-accent);
+  max-width:220px;margin:0 auto;}
+.otp-box:focus{border-color:#7ef7ff;box-shadow:0 0 12px rgba(0,229,255,.3);}
+#timer-ring{display:inline-block;color:var(--atm-accent);font-size:1.8rem;font-weight:700;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-5">
+    <div class="atm-card atm-card-glow text-center">
+
+      <div style="font-size:3.5rem;color:var(--atm-accent);margin-bottom:.5rem;">
+        <i class="fas fa-mobile-alt"></i>
+      </div>
+      <h4 class="section-title">Step 2 — OTP Verification</h4>
+      <p class="text-muted small mb-4">
+        A 6-digit OTP has been sent to your <strong>registered email address</strong>.<br>
+        <span style="color:#8fa3c0;font-size:.8rem;"><i class="fas fa-envelope me-1"></i>Check your inbox &amp; spam folder</span><br><br>
+        Enter it below within <strong id="timer-ring">5:00</strong>
+      </p>
+
+      <form method="POST">
+        <div class="mb-4">
+          <input type="text" name="otp" class="form-control otp-box" maxlength="6"
+                 placeholder="______" autocomplete="off" required autofocus
+                 inputmode="numeric" pattern="[0-9]{6}"/>
+        </div>
+        <button type="submit" class="btn btn-atm btn-atm-success px-5 mb-3 w-100">
+          <i class="fas fa-check-circle me-2"></i>Verify OTP
+        </button>
+      </form>
+
+      <form action="/resend-otp/" method="POST">
+        <button type="submit" class="btn btn-sm btn-outline-secondary" id="btn-resend" disabled>
+          <i class="fas fa-redo me-1"></i>Resend OTP <span id="resend-countdown">(60s)</span>
+        </button>
+      </form>
+
+      <div class="mt-4" style="border-top:1px solid var(--atm-border);padding-top:1rem;">
+        <a href="/face-verify/" class="text-muted small">
+          <i class="fas fa-arrow-left me-1"></i>Back to Face Verification
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// OTP expire countdown (5 min)
+let expSecs = 300;
+const timerEl = document.getElementById('timer-ring');
+const expTimer = setInterval(() => {
+  expSecs--;
+  const m = Math.floor(expSecs/60), s = expSecs%60;
+  timerEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  if(expSecs <= 0){ clearInterval(expTimer); timerEl.textContent='EXPIRED'; timerEl.style.color='var(--atm-red)'; }
+}, 1000);
+
+// Resend cooldown (60s)
+let resendSecs = 60;
+const resendEl = document.getElementById('resend-countdown');
+const btnResend = document.getElementById('btn-resend');
+const resendTimer = setInterval(() => {
+  resendSecs--;
+  resendEl.textContent = resendSecs > 0 ? `(${resendSecs}s)` : '';
+  if(resendSecs <= 0){ clearInterval(resendTimer); btnResend.disabled=false; resendEl.textContent=''; }
+}, 1000);
+
+// Auto-format OTP input
+document.querySelector('input[name=otp]').addEventListener('input', function(){
+  this.value = this.value.replace(/\D/g,'').slice(0,6);
+});
+</script>
+{% endblock %}

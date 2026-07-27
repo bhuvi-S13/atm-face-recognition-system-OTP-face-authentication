@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="row mb-3 align-items-center">
+  <div class="col">
+    <h4 class="glow-text mb-0"><i class="fas fa-shield-alt me-2"></i>Admin Dashboard</h4>
+    <small class="text-muted">SecureATM Management Console</small>
+  </div>
+  <div class="col-auto d-flex gap-2">
+    <a href="/admin-deposit-requests/" class="btn btn-sm btn-atm position-relative">
+      <i class="fas fa-inbox me-1"></i>Deposit Requests
+      {% if pending_count > 0 %}
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+              style="background:var(--atm-red);font-size:.7rem;">
+          {{ pending_count }}
+        </span>
+      {% endif %}
+    </a>
+    <form action="/admin-train-model/" method="POST" class="d-inline">
+      <button type="submit" class="btn btn-sm btn-atm btn-atm-success">
+        <i class="fas fa-brain me-1"></i>Train Model
+      </button>
+    </form>
+    <a href="/admin-add-user/" class="btn btn-sm btn-atm">
+      <i class="fas fa-user-plus me-1"></i>Add User
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-box">
+      <div class="stat-val">{{ total_users }}</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-box">
+      <div class="stat-val">₹{{ "{:,.0f}".format(total_bal) }}</div>
+      <div class="stat-label">Total Balance</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-box">
+      <div class="stat-val">{{ model_info.get('users', 0) }}</div>
+      <div class="stat-label">Face Model Users</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-box">
+      <div class="stat-val">{{ model_info.get('samples', 0) }}</div>
+      <div class="stat-label">Face Samples</div>
+    </div>
+  </div>
+</div>
+
+<div class="atm-card">
+  <h6 class="section-title"><i class="fas fa-users me-2"></i>Registered Users</h6>
+  {% if users %}
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr>
+        <th>#</th><th>Name</th><th>Account</th><th>Phone</th>
+        <th>Balance</th><th>Status</th><th>Fails</th><th>Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td class="text-muted">{{ loop.index }}</td>
+          <td><strong>{{ u['name'] }}</strong></td>
+          <td><code style="color:var(--atm-accent);font-size:.8rem">{{ u['account_number'] }}</code></td>
+          <td class="text-muted small">{{ u['phone'] }}</td>
+          <td>₹{{ "{:,.2f}".format(u['balance'] or 0) }}</td>
+          <td>
+            {% if u['is_active'] %}
+              <span class="badge-active"><i class="fas fa-check-circle me-1"></i>Active</span>
+            {% else %}
+              <span class="badge-locked"><i class="fas fa-lock me-1"></i>Locked</span>
+            {% endif %}
+          </td>
+          <td>
+            <span style="color:{% if u['fail_count']>0 %}var(--atm-red){% else %}#8fa3c0{% endif %}">
+              {{ u['fail_count'] }} fail(s)
+            </span>
+          </td>
+          <td>
+            <a href="/admin-user/{{ u['id'] }}/" class="btn btn-sm btn-atm py-1 px-2">
+              <i class="fas fa-eye"></i>
+            </a>
+            <a href="/admin-edit-user/{{ u['id'] }}/" class="btn btn-sm btn-atm py-1 px-2">
+              <i class="fas fa-edit"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted text-center py-4"><i class="fas fa-user-slash me-2"></i>No users registered yet</p>
+  {% endif %}
+</div>
+{% endblock %}

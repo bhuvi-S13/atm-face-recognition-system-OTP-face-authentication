@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Capture Face — {{ user['name'] }}{% endblock %}
+{% block extra_head %}
+<style>
+#vid-wrap{position:relative;display:inline-block;border-radius:12px;overflow:hidden;}
+#vid-feed{border-radius:12px;display:block;}
+.thumb-grid{display:grid;grid-template-columns:repeat(5,60px);gap:6px;}
+.thumb-grid img{width:60px;height:60px;object-fit:cover;border-radius:6px;border:2px solid var(--atm-border);}
+.thumb-grid img.ok{border-color:var(--atm-green);}
+#cap-status{font-weight:600;font-size:1rem;min-height:24px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="atm-card atm-card-glow text-center">
+      <h4 class="section-title"><i class="fas fa-camera me-2"></i>Face Capture — {{ user['name'] }}</h4>
+      <p class="text-muted small mb-1">Capture <strong>10 images</strong> in different angles for best accuracy.</p>
+      <p class="text-muted small mb-3">Existing: <strong id="existing-count">{{ existing }}</strong> images</p>
+
+      <div class="d-flex justify-content-center mb-3">
+        <div id="vid-wrap">
+          <img id="vid-feed" src="/admin-capture-feed/" width="480" height="360"/>
+        </div>
+      </div>
+
+      <div id="cap-status" class="mb-2 text-muted">Press "Capture" to take a photo</div>
+      <div class="progress mb-3" style="height:8px;background:#1e2d45;border-radius:4px;max-width:480px;margin:0 auto;">
+        <div class="progress-bar bg-info" id="cap-progress" style="width:0%"></div>
+      </div>
+
+      <div class="thumb-grid mb-3" id="thumbs" style="justify-content:center;margin:0 auto;width:fit-content;"></div>
+
+      <div class="d-flex gap-2 justify-content-center mb-3">
+        <button class="btn btn-atm btn-atm-success px-4" id="btn-cap" onclick="capture()">
+          <i class="fas fa-camera me-2"></i>Capture (<span id="cap-count">0</span>/10)
+        </button>
+        <button class="btn btn-atm px-4" id="btn-save" onclick="saveAll()" disabled>
+          <i class="fas fa-save me-2"></i>Save All &amp; Train
+        </button>
+        <a href="/admin-dashboard/" class="btn btn-atm btn-atm-danger">Skip</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<canvas id="cap-canvas" style="display:none"></canvas>
+<script>
+const USER_ID = {{ user['id'] }};
+const MAX_CAPS = 10;
+let captured = [];
+
+function setStatus(msg, color='var(--atm-accent)') {
+  const el = document.getElementById('cap-status');
+  el.textContent = msg;
+  el.style.color = color;
+}
+
+async function capture() {
+  if (captured.length >= MAX_CAPS) return;
+  const vid = document.getElementById('vid-feed');
+  const canvas = document.getElementById('cap-canvas');
+  canvas.width = vid.naturalWidth || 480;
+  canvas.height = vid.naturalHeight || 360;
+  canvas.getContext('2d').drawImage(vid, 0, 0);
+  const b64 = canvas.toDataURL('image/jpeg', 0.9);
+  captured.push(b64);
+
+  // Show thumb
+  const img = document.createElement('img');
+  img.src = b64; img.className = 'ok';
+  document.getElementById('thumbs').appendChild(img);
+
+  const cnt = captured.length;
+  document.getElementById('cap-count').textContent = cnt;
+  document.getElementById('cap-progress').style.width = (cnt/MAX_CAPS*100) + '%';
+  setStatus(`Captured ${cnt}/${MAX_CAPS}`, 'var(--atm-green)');
+
+  if (cnt >= MAX_CAPS) {
+    document.getElementById('btn-cap').disabled = true;
+    document.getElementById('btn-save').disabled = false;
+    setStatus('All captured! Click "Save All & Train" to proceed.', 'var(--atm-green)');
+  }
+}
+
+async function saveAll() {
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  setStatus('Saving images and training model...', 'var(--atm-accent)');
+
+  try {
+    const resp = await fetch('/admin-capture-face-save/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({user_id: USER_ID, images: captured})
+    });
+    const data = await resp.json();
+    if(data.saved > 0) {
+      setStatus(`Saved ${data.saved} face images. Training model...`, 'var(--atm-green)');
+      // Train model after saving
+      await fetch('/admin-train-model/', {method:'POST'});
+      setStatus(`✓ Done! ${data.saved} images saved & model trained.`, 'var(--atm-green)');
+      setTimeout(() => { window.location.href = '/admin-dashboard/'; }, 1500);
+    } else {
+      setStatus('No valid faces detected. Please retake.', 'var(--atm-red)');
+      btn.disabled = false;
+    }
+  } catch(e) {
+    setStatus('Error saving. Retry.', 'var(--atm-red)');
+    btn.disabled = false;
+  }
+}
+</script>
+{% endblock %}

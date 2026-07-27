@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Account Dashboard{% endblock %}
+{% block content %}
+<div class="row mb-3 align-items-center">
+  <div class="col">
+    <h4 class="glow-text mb-0"><i class="fas fa-tachometer-alt me-2"></i>Account Dashboard</h4>
+    <small class="text-muted">Welcome back, <strong>{{ user['name'] }}</strong></small>
+  </div>
+  <div class="col-auto">
+    <a href="/logout/" class="btn btn-atm btn-atm-danger btn-sm"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-box">
+      <div class="stat-val">₹{{ "{:,.2f}".format(balance) }}</div>
+      <div class="stat-label"><i class="fas fa-wallet me-1"></i>Available Balance</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-box">
+      <div class="stat-val" style="font-size:1.2rem">{{ user['account_number'] }}</div>
+      <div class="stat-label"><i class="fas fa-credit-card me-1"></i>Account Number</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-box">
+      <div class="stat-val" style="font-size:1.2rem">{{ user['saving_type'] }}</div>
+      <div class="stat-label"><i class="fas fa-piggy-bank me-1"></i>Account Type</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="atm-card h-100">
+      <h6 class="section-title"><i class="fas fa-user me-2"></i>Profile</h6>
+      <table class="table table-sm mb-0">
+        <tr><td class="text-muted" style="width:40%">Name</td><td><strong>{{ user['name'] }}</strong></td></tr>
+        <tr><td class="text-muted">Phone</td><td>{{ user['phone'] }}</td></tr>
+        <tr><td class="text-muted">Email</td><td>{{ user['email'] }}</td></tr>
+        <tr><td class="text-muted">DOB</td><td>{{ user['dob'] }}</td></tr>
+        <tr><td class="text-muted">Address</td><td>{{ user['address'] or '—' }}</td></tr>
+        <tr><td class="text-muted">Member Since</td><td>{{ user['created_at'][:10] }}</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="atm-card h-100">
+      <h6 class="section-title"><i class="fas fa-exchange-alt me-2"></i>Quick Actions</h6>
+      <div class="d-grid gap-3">
+        <a href="/deposit/" class="btn btn-atm btn-atm-success">
+          <i class="fas fa-paper-plane me-2"></i>Request Deposit
+        </a>
+        <a href="/withdraw/" class="btn btn-atm">
+          <i class="fas fa-minus-circle me-2"></i>Withdraw Money
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="atm-card">
+  <h6 class="section-title"><i class="fas fa-history me-2"></i>Recent Transactions</h6>
+  {% if txns %}
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr>
+        <th>#</th><th>Type</th><th>Amount</th><th>Balance After</th><th>Date</th>
+      </tr></thead>
+      <tbody>
+        {% for tx in txns %}
+        <tr>
+          <td class="text-muted">{{ loop.index }}</td>
+          <td>
+            {% if tx['tx_type'] == 'DEPOSIT' %}
+              <span class="badge" style="background:#05490530;color:var(--atm-green);border:1px solid #096642;">
+                <i class="fas fa-arrow-down me-1"></i>Deposit
+              </span>
+            {% else %}
+              <span class="badge" style="background:#3d050530;color:var(--atm-red);border:1px solid #6b1515;">
+                <i class="fas fa-arrow-up me-1"></i>Withdraw
+              </span>
+            {% endif %}
+          </td>
+          <td style="color:{{ 'var(--atm-green)' if tx['tx_type']=='DEPOSIT' else 'var(--atm-red)' }}">
+            {{ '+' if tx['tx_type']=='DEPOSIT' else '-' }}₹{{ "{:,.2f}".format(tx['amount']) }}
+          </td>
+          <td>₹{{ "{:,.2f}".format(tx['balance_after']) }}</td>
+          <td class="text-muted small">{{ tx['created_at'][:16] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted text-center py-3"><i class="fas fa-inbox me-2"></i>No transactions yet</p>
+  {% endif %}
+</div>
+{% endblock %}

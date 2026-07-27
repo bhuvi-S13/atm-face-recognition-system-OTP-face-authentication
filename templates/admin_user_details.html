@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}User — {{ user['name'] }}{% endblock %}
+{% block content %}
+<div class="row mb-3 align-items-center">
+  <div class="col">
+    <h4 class="glow-text mb-0">{{ user['name'] }}</h4>
+    <small class="text-muted">Account: <code style="color:var(--atm-accent)">{{ user['account_number'] }}</code></small>
+  </div>
+  <div class="col-auto d-flex gap-2 flex-wrap">
+    <a href="/admin-capture-face/{{ user['id'] }}/" class="btn btn-sm btn-atm">
+      <i class="fas fa-camera me-1"></i>Re-capture Face
+    </a>
+    <a href="/admin-edit-user/{{ user['id'] }}/" class="btn btn-sm btn-atm">
+      <i class="fas fa-edit me-1"></i>Edit
+    </a>
+    <form action="/admin-user/{{ user['id'] }}/toggle/" method="POST" class="d-inline">
+      <button type="submit" class="btn btn-sm {% if user['is_active'] %}btn-atm-danger{% else %}btn-atm-success{% endif %} btn-atm">
+        <i class="fas fa-{{ 'lock' if user['is_active'] else 'unlock' }} me-1"></i>
+        {{ 'Lock' if user['is_active'] else 'Unlock' }}
+      </button>
+    </form>
+    <form action="/admin-user/{{ user['id'] }}/clear-fails/" method="POST" class="d-inline">
+      <button type="submit" class="btn btn-sm btn-atm" onclick="return confirm('Clear all fails?')">
+        <i class="fas fa-eraser me-1"></i>Clear Fails
+      </button>
+    </form>
+    <form action="/admin-delete-user/{{ user['id'] }}/" method="POST" class="d-inline">
+      <button type="submit" class="btn btn-sm btn-atm btn-atm-danger" onclick="return confirm('Delete user?')">
+        <i class="fas fa-trash me-1"></i>Delete
+      </button>
+    </form>
+    <a href="/admin-dashboard/" class="btn btn-sm btn-atm btn-atm-danger">
+      <i class="fas fa-arrow-left me-1"></i>Back
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="stat-box"><div class="stat-val">₹{{ "{:,.2f}".format(balance) }}</div><div class="stat-label">Balance</div></div></div>
+  <div class="col-md-3"><div class="stat-box"><div class="stat-val">{{ face_count }}</div><div class="stat-label">Face Samples</div></div></div>
+  <div class="col-md-3"><div class="stat-box">
+    <div class="stat-val" style="color:{% if user['is_active'] %}var(--atm-green){% else %}var(--atm-red){% endif %}">
+      {{ 'Active' if user['is_active'] else 'Locked' }}
+    </div><div class="stat-label">Status</div>
+  </div></div>
+  <div class="col-md-3"><div class="stat-box"><div class="stat-val" style="color:var(--atm-red)">{{ user['face_fail_total'] + user['otp_fail_total'] }}</div><div class="stat-label">Total Fails</div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="atm-card">
+      <h6 class="section-title"><i class="fas fa-user me-2"></i>Profile</h6>
+      <table class="table table-sm mb-0">
+        <tr><td class="text-muted">DOB</td><td>{{ user['dob'] }}</td></tr>
+        <tr><td class="text-muted">Phone</td><td>{{ user['phone'] }}</td></tr>
+        <tr><td class="text-muted">Email</td><td>{{ user['email'] }}</td></tr>
+        <tr><td class="text-muted">Type</td><td>{{ user['saving_type'] }}</td></tr>
+        <tr><td class="text-muted">Address</td><td>{{ user['address'] or '—' }}</td></tr>
+        <tr><td class="text-muted">Locked Until</td><td>{{ user['locked_until'] or '—' }}</td></tr>
+        <tr><td class="text-muted">Joined</td><td>{{ user['created_at'][:10] }}</td></tr>
+      </table>
+
+      <hr/>
+      <p class="text-muted small"><i class="fas fa-info-circle me-1"></i>
+        User deposit requests appear in <a href="/admin-deposit-requests/">Deposit Requests</a>.
+      </p>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="atm-card mb-3">
+      <h6 class="section-title"><i class="fas fa-history me-2"></i>Transactions</h6>
+      {% if txns %}
+      <div class="table-responsive" style="max-height:220px;overflow-y:auto;">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Type</th><th>Amount</th><th>Balance After</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for tx in txns %}
+            <tr>
+              <td><span style="color:{{ 'var(--atm-green)' if tx['tx_type']=='DEPOSIT' else 'var(--atm-red)' }}">{{ tx['tx_type'] }}</span></td>
+              <td>₹{{ "{:,.2f}".format(tx['amount']) }}</td>
+              <td>₹{{ "{:,.2f}".format(tx['balance_after']) }}</td>
+              <td class="text-muted small">{{ tx['created_at'][:16] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<p class="text-muted small">No transactions.</p>{% endif %}
+    </div>
+    <div class="atm-card">
+      <h6 class="section-title"><i class="fas fa-exclamation-triangle me-2"></i>Auth Fail Logs</h6>
+      {% if fails %}
+      <div class="table-responsive" style="max-height:160px;overflow-y:auto;">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Type</th><th>Message</th><th>Time</th></tr></thead>
+          <tbody>
+            {% for f in fails %}
+            <tr>
+              <td><span style="color:var(--atm-red)">{{ f['fail_type'] }}</span></td>
+              <td class="text-muted small">{{ f['message'] }}</td>
+              <td class="text-muted small">{{ f['created_at'][:16] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<p class="text-muted small">No fail logs.</p>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
